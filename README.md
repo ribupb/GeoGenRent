@@ -134,10 +134,6 @@ Run the application
 python app.py
 ```
 
-Open:
-
-https://geogenrent.onrender.com
-
 ---
 
 ## Screenshots
