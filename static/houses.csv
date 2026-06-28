@@ -1,0 +1,6 @@
+id,name,latitude,longitude,rent,rooms,furnished,address
+1,2BHK Flat,12.9716,77.5946,20000,2,Yes,"MG Road, Bangalore"
+2,1BHK PG,12.9352,77.6245,8000,1,No,"Koramangala, Bangalore"
+3,3BHK Apartment,12.9822,77.6090,30000,3,Yes,"Indiranagar, Bangalore"
+4,Shared PG,12.9260,77.6762,6000,1,No,"Marathahalli, Bangalore"
+5,2BHK Furnished,12.9202,77.6100,25000,2,Yes,"BTM Layout, Bangalore"

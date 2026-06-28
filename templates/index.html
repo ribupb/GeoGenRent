@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Bengaluru Housing Explorer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+  <style>
+    /* keep marker glow styles and layer control */
+    .house-highlight { filter: drop-shadow(0 0 10px rgba(59,130,246,0.95)); transform: scale(1.15); transition: all .18s ease; }
+    .house-dim { opacity: 0.25 !important; filter: grayscale(75%); transition: all .18s ease; }
+    .leaflet-control-layers { z-index: 1300; }
+  </style>
+</head>
+
+<body>
+  <h2>Bengaluru Housing Explorer — GeoAI Assistant</h2>
+
+
+  <!-- ADD MAP DIV HERE -->
+  <div id="map"></div>
+
+  <!-- AI Assistant Panel -->
+  <div id="ai-chat-box">
+    <div id="ai-chat-box-header">
+      <h3 class="title">
+        <span class="emoji">🤖</span>
+        <span>GeoAI Assistant</span>
+        <button id="toggle-chat">−</button>
+      </h3>
+
+      <!-- Dark / Light theme toggle -->
+      <button id="theme-toggle" type="button">
+        <span class="icon">🌙</span>
+        <span class="label">Dark</span>
+      </button>
+    </div>
+
+    <div id="ai-response" class="ai-response">
+      Try: <b>"Find 2BHK under 60 lakh near Whitefield"</b>
+    </div>
+
+    <div id="chat-row">
+      <input id="chat-input" placeholder='e.g. "Find 2BHK under 60 lakh near Whitefield"'/>
+      <button id="send-button">Ask AI</button>
+    </div>
+
+    <!-- Optional action buttons row (you can keep or remove) -->
+    <div id="ai-actions-row" style="margin-top:8px;">
+      <button id="reset-view" class="small">🧭 Reset Map</button>
+      <button id="show-all" class="small">Show All Houses</button>
+    </div>
+  </div>
+  <!-- Property Results Panel -->
+  <div id="results-panel" class="results-panel hidden">
+    <div class="results-header">
+      <span class="results-title">🏠 Results (<span id="results-count">0</span>)</span>
+      <span class="results-close" onclick="closeResultsPanel()">✖</span>
+    </div>
+    <div id="results-list" class="results-list"></div>
+  </div>
+
+
+<!-- RIGHT SIDEBAR DASHBOARD -->
+<div id="right-dashboard">
+
+    <!-- INDEX SECTION -->
+  <!-- MODERN INDEX SECTION -->
+  <div class="sidebar-section index-modern">
+
+      <div class="index-title">
+          <span class="icon">📍</span>
+          <h3>Map Layers</h3>
+      </div>
+
+      <div class="index-items">
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-houses" checked>
+              <span class="checkmark"></span>
+              Houses
+          </label>
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-aqi" checked>
+              <span class="checkmark"></span>
+              AQI Stations
+          </label>
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-metro">
+              <span class="checkmark"></span>
+              Metro Stations
+          </label>
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-metro-lines" checked>
+              <span class="checkmark"></span>
+              Metro Lines
+          </label>
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-schools">
+              <span class="checkmark"></span>
+              Schools
+          </label>
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-bus">
+              <span class="checkmark"></span>
+              Bus Stops
+          </label>
+
+          <label class="index-item">
+              <input type="checkbox" id="layer-hospitals">
+              <span class="checkmark"></span>
+              Hospitals
+          </label>
+
+      </div>
+
+  </div>
+
+
+   <!-- SMART CITY DASHBOARD -->
+  <div class="sidebar-section">
+    <div class="section-header">
+      <span class="icon">📊</span>
+      <span class="title">City Snapshot</span>
+    </div>
+
+    <!-- Real count stats -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-val" id="d-houses">0</span>
+        <span class="stat-lbl">Listings</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" id="d-median-price">—</span>
+        <span class="stat-lbl">Median Price</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" id="d-metro">0</span>
+        <span class="stat-lbl">Metro Stn.</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" id="d-hospitals">0</span>
+        <span class="stat-lbl">Hospitals</span>
+      </div>
+    </div>
+
+    <!-- BHK distribution (real) -->
+    <p class="chart-label">BHK Distribution</p>
+    <div class="chart-wrap">
+      <canvas id="chart-bhk"></canvas>
+    </div>
+
+    <!-- AQI breakdown (real) -->
+    <p class="chart-label">AQI Stations</p>
+    <div style="display:flex;gap:8px;font-size:11px;color:#64748b;margin-bottom:6px;">
+      <span>Total: <b id="d-aqi">0</b></span>
+      <span>Schools: <b id="d-schools">0</b></span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chart-aqi"></canvas>
+    </div>
+  </div>
+
+
+  <!-- Floating Action Buttons (duplicate ids for same JS handlers) -->
+  </div>>
+    <div id="fab-container">
+      <button id="show-all" class="fab" title="Show all houses">
+        <span>🏘️</span>
+      </button>
+      <button id="reset-view" class="fab" title="Reset view">
+        <span>🧭</span>
+      </button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading…</div>
+    </div>
+
+    <!-- Right Slide Panel -->
+    <div id="info-panel" class="info-panel hidden">
+      <span class="close-btn" onclick="closeInfoPanel()">✖</span>
+      <div id="panel-content" class="panel-content"></div>
+    </div>
+
+    <!-- Property Comparison Modal -->
+    <div id="compare-modal">
+      <span class="cmp-close" onclick="closeCompare()">✖</span>
+      <!--<button id="toggle-results">−</button>-->
+      <h3>📊 Property Comparison</h3>
+      <div id="compare-table-wrap"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
