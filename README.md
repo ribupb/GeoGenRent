@@ -61,19 +61,26 @@ The application integrates housing listings with spatial datasets such as metro 
 
 ## Project Workflow
 
+```text
 User Preferences
 (Budget, BHK, Location)
-↓
+        │
+        ▼
 Dataset Filtering
-↓
+        │
+        ▼
 Geospatial Analysis
-↓
+        │
+        ▼
 Distance Calculations
 (Metro, Schools, Hospitals, Bus Stops, AQI)
-↓
+        │
+        ▼
 Scoring & Ranking
-↓
+        │
+        ▼
 Interactive Map Recommendations
+```
 
 ---
 
